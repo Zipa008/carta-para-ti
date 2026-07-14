@@ -339,6 +339,12 @@ const CARTAS = [
     text: "Hola amor de mi vida, quiero decirte en esta pequeña cartita que eres y siempre serás la motivación de mis días, con lo que más me gusta soñar en mis noches y quien no sale de mis pensamientos en ningún segundo del día. Me siento muy afortunado de despertar y ver en una foto o en un mensaje todo tu amor. Gracias por amarme tanto y demostrármelo tanto, eres todo lo que más amo en esta vida, y por eso decido que hoy escuches esta canción, una de las nuestras, pero que me recuerda todos los días la mujer tan hermosa que tengo a mi lado.",
     spotify: "https://open.spotify.com/intl-es/track/3rL3VBUNUf9sSOv0RAQTBT?si=3dff8a6c864d4594",
     quote: "Eres linda y no me canso de mirarte, ¡qué suerte la mía de poder amarte, de poder tenerte, de poder besarte!"
+  },
+  {
+    date: "2026-07-13",
+    text: "Cartita de hoy para el amor de mi vida, hoy quería decirte que me impresiona la forma en que más me enamoro de ti día con día, de que amo y deseo tu cuerpo como desde esa primera vez que te vi, amo cada cosa que eres y representas, y puedo decir que me he enamorado de cada una de tus locuras, y que no pienso pasar un día de mi vida sin ellas. Y te prometo que cada día voy a hacer hasta lo imposible por hacerte sentir la mujer más amada del mundo.",
+    spotify: "https://open.spotify.com/intl-es/track/58sCyRSFBV0m60kbV9rtp9?si=29507c00ea5444f5",
+    quote: "No creas que dejaré de enamorarte"
   }
 ];
 
@@ -385,10 +391,11 @@ function unlockedCartas(){
 }
 function getNextUnlock(now){
   const localDateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-  const hasToday = CARTAS.some(c => c.date === localDateStr);
+  const todayCarta = CARTAS.find(c => c.date === localDateStr);
   const t = new Date(now);
   t.setHours(UNLOCK_HOUR, 0, 0, 0);
-  if(hasToday || now >= t){ t.setDate(t.getDate() + 1); }
+  const todayAlreadyUnlocked = todayCarta && (todayCarta.unlockNow || now >= t);
+  if(todayAlreadyUnlocked || now >= t){ t.setDate(t.getDate() + 1); }
   return t;
 }
 function formatDate(dateStr){
