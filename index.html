@@ -257,6 +257,43 @@
   .archive-item .d{ color: var(--gold); font-weight:500; }
   .archive-item .t{ color: rgba(253,246,238,.7); flex:1; margin-left:1rem; text-align:right; }
 
+  .choices-block{
+    margin-top: 1.8rem;
+    padding-top: 1.6rem;
+    border-top: 1px dashed rgba(122,46,74,.3);
+  }
+  .choices-toggle{
+    width:100%;
+    background: linear-gradient(135deg, var(--rose), var(--magenta));
+    color:#fff; border:none; padding:.9rem 1.1rem; border-radius:8px;
+    font-family:'Poppins', sans-serif; font-size:.9rem; font-weight:500;
+    cursor:pointer;
+  }
+  .choices-panel{ display:flex; flex-direction:column; gap:.6rem; margin-top:.9rem; }
+  .choices-panel[hidden]{ display:none; }
+  .choice-btn{
+    text-align:left; background:#fff; border:1px solid rgba(122,46,74,.25);
+    border-radius:8px; padding:.8rem 1rem; font-family:'Lora', serif;
+    font-size:.98rem; cursor:pointer; color:#3A2A28;
+  }
+  .choice-btn:hover{ background: rgba(232,92,107,.08); border-color: var(--rose); }
+  .choice-reveal{ position:relative; text-align:center; padding:2.2rem 0 1rem; overflow:hidden; }
+  .choice-reveal[hidden]{ display:none; }
+  .reveal-text{
+    position:relative; z-index:2;
+    font-family:'Parisienne', cursive; font-size:2.3rem; color: var(--rose);
+  }
+  .roses-burst{ position:absolute; inset:0; pointer-events:none; }
+  .rose-emoji{
+    position:absolute; top:100%; font-size:1.4rem;
+    animation: roseFloat 2.4s ease-out forwards;
+  }
+  @keyframes roseFloat{
+    0%{ transform: translateY(0) rotate(0deg); opacity:0; }
+    10%{ opacity:1; }
+    100%{ transform: translateY(-170px) rotate(340deg); opacity:0; }
+  }
+
   .modal-overlay{
     position:fixed; inset:0; background: rgba(15,8,17,.75);
     display:none; align-items:center; justify-content:center;
@@ -345,6 +382,17 @@ const CARTAS = [
     text: "Cartita de hoy para el amor de mi vida, hoy quería decirte que me impresiona la forma en que más me enamoro de ti día con día, de que amo y deseo tu cuerpo como desde esa primera vez que te vi, amo cada cosa que eres y representas, y puedo decir que me he enamorado de cada una de tus locuras, y que no pienso pasar un día de mi vida sin ellas. Y te prometo que cada día voy a hacer hasta lo imposible por hacerte sentir la mujer más amada del mundo.",
     spotify: "https://open.spotify.com/intl-es/track/58sCyRSFBV0m60kbV9rtp9?si=29507c00ea5444f5",
     quote: "No creas que dejaré de enamorarte"
+  },
+  {
+    date: "2026-07-14",
+    text: "Mi preciosa hermosa, la cartita de hoy no es como las otras, es mucho más especial: quería recordarte que en 10 días vamos a estar juntos. Nos vamos a volver a ver y no nos vamos a separar en un buen tiempo. Vamos a volver a tomarnos la manita, a caminar juntos, a darnos ese besito de amor que tanta falta nos hace. Me hace muy feliz y me llena de mucha felicidad todo lo que hemos crecido y lo que seguimos formando juntos. No aguanto el momento de verte y estar a tu lado, me haces mucha falta y no dejo de pensar ni un segundo en que ya voy a volver a tocarte y sentirte, aunque también te siento sin estar presentes, porque nunca nos abandonamos. Necesito ya estar cerca del amor de mi vida, pero empieza la cuenta regresiva para ver esa carita que amo, esos ojitos que iluminan mi vida, ese cuerpo que deseo, y me encanta que falta tan poco para ver al amor de mi vida.",
+    spotify: "https://open.spotify.com/intl-es/track/6VQ2fI8goSX8mpSvytXkXR?si=c20ac8f9e72d411a",
+    quote: "Que a besos yo te levante al rayar el día, y que el idilio perdure siempre al llegar la noche, y cuando venga la aurora llena de goce, se fundan en una sola tu alma y la mía",
+    choices: [
+      "1. Hacer el amor (te deseo mucho)",
+      "2. Ir a un restaurante nuevo",
+      "3. Ir a visitar algún postrecito de los que hemos visto"
+    ]
   }
 ];
 
@@ -417,6 +465,17 @@ function spotifyEmbedUrl(link){
 
 function letterHTML(c){
   const embed = spotifyEmbedUrl(c.spotify || '');
+  const choicesBlock = c.choices ? `
+      <div class="choices-block">
+        <button class="choices-toggle" type="button">Escoge lo que vamos a hacer cuando ya estemos en casa juntos 💕</button>
+        <div class="choices-panel" hidden>
+          ${c.choices.map((op,i) => `<button class="choice-btn" type="button" data-choice="${i}">${escapeHtml(op)}</button>`).join('')}
+        </div>
+        <div class="choice-reveal" hidden>
+          <div class="roses-burst"></div>
+          <div class="reveal-text">Te amo 💕</div>
+        </div>
+      </div>` : '';
   return `
     <div class="letter">
       <div class="date">${formatDate(c.date)}</div>
@@ -428,8 +487,37 @@ function letterHTML(c){
         ${c.quote ? `<div class="song-quote">${escapeHtml(c.quote)}</div>` : ''}
         ${embed ? `<div class="song-embed"><iframe src="${embed}" height="152" allow="encrypted-media"></iframe></div>` : (c.spotify ? `<a href="${c.spotify}" target="_blank" style="color:#7A2E4A;">Escuchar en Spotify</a>` : '')}
       </div>` : ''}
+      ${choicesBlock}
     </div>
   `;
+}
+
+function spawnRoses(container){
+  container.innerHTML = '';
+  for(let i=0;i<20;i++){
+    const r = document.createElement('span');
+    r.className = 'rose-emoji';
+    r.textContent = '🌹';
+    r.style.left = (Math.random()*94)+'%';
+    r.style.animationDelay = (Math.random()*0.5)+'s';
+    r.style.fontSize = (16+Math.random()*16)+'px';
+    container.appendChild(r);
+  }
+}
+
+function initChoices(root){
+  const toggle = root.querySelector('.choices-toggle');
+  if(!toggle) return;
+  const panel = root.querySelector('.choices-panel');
+  const reveal = root.querySelector('.choice-reveal');
+  toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; });
+  root.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panel.hidden = true;
+      reveal.hidden = false;
+      spawnRoses(reveal.querySelector('.roses-burst'));
+    });
+  });
 }
 
 let countdownTimer = null;
@@ -446,7 +534,9 @@ function renderToday(){
   if(unlocked.length === 0){
     slot.innerHTML = `<div class="empty-state">Todavía no hay carta disponible.<br>Vuelve pronto 🌷</div>`;
   }else{
-    slot.innerHTML = letterHTML(unlocked[unlocked.length - 1]);
+    const c = unlocked[unlocked.length - 1];
+    slot.innerHTML = letterHTML(c);
+    initChoices(slot);
   }
   renderCounter();
   renderCountdown();
@@ -501,9 +591,11 @@ function renderArchive(){
 
 function showLetterModal(c){
   const overlay = document.getElementById('modal-overlay');
-  document.getElementById('modal-content').innerHTML = `
+  const content = document.getElementById('modal-content');
+  content.innerHTML = `
     ${letterHTML(c)}
     <button class="btn btn-ghost" id="close-view">Cerrar</button>`;
+  initChoices(content);
   overlay.classList.add('open');
   document.getElementById('close-view').addEventListener('click', () => overlay.classList.remove('open'));
 }
