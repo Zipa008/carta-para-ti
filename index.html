@@ -277,6 +277,14 @@
     font-size:.98rem; cursor:pointer; color:#3A2A28;
   }
   .choice-btn:hover{ background: rgba(232,92,107,.08); border-color: var(--rose); }
+  .note-toggle{
+    width:100%;
+    background: linear-gradient(135deg, var(--gold), var(--rose));
+    color:#fff; border:none; padding:.9rem 1.1rem; border-radius:8px;
+    font-family:'Poppins', sans-serif; font-size:.9rem; font-weight:500;
+    cursor:pointer;
+  }
+  .note-toggle[hidden]{ display:none; }
   .choice-reveal{ position:relative; text-align:center; padding:2.2rem 0 1rem; overflow:hidden; }
   .choice-reveal[hidden]{ display:none; }
   .reveal-text{
@@ -393,6 +401,13 @@ const CARTAS = [
       "2. Ir a un restaurante nuevo",
       "3. Ir a visitar algún postrecito de los que hemos visto"
     ]
+  },
+  {
+    date: "2026-07-15",
+    text: "Hola mi amorcito, oficialmente quedan 10 días para vernos, y quiero decirte que no dejo de pensar en la foto de la mañana, en cuánto amo tu cuerpo, cómo te deseo y cómo me encantas cada vez más. Quiero tenerte para mí todos los días de mi vida, hacerte mía miles de veces con el amor, el cariño y la pasión con la que siempre lo hemos hecho juntos. Sé que no es lo más importante y que primero van otras cosas, pero me encantas, te deseo, y no veo la hora de volver a tocar tu piel, sentirte, besarte, acariciarte, y tener nuestras almas juntas como siempre, mi amor hermosa. Te amo, me encantas, y me enamoras día a día.",
+    spotify: "https://open.spotify.com/intl-es/track/4VkgupW7kaVvxIIMl3360N?si=a2f7ffc8df8a4eee",
+    quote: "Agradecido yo estoy con Dios, porque en mi vida está ella",
+    countdown_note: "No veo la hora de volver a estar con mi mujer 💕"
   }
 ];
 
@@ -476,6 +491,14 @@ function letterHTML(c){
           <div class="reveal-text">Te amo 💕</div>
         </div>
       </div>` : '';
+  const noteBlock = c.countdown_note ? `
+      <div class="choices-block">
+        <button class="note-toggle" type="button">💕 Toca aquí</button>
+        <div class="choice-reveal" hidden>
+          <div class="roses-burst hearts-mode"></div>
+          <div class="reveal-text">${escapeHtml(c.countdown_note)}</div>
+        </div>
+      </div>` : '';
   return `
     <div class="letter">
       <div class="date">${formatDate(c.date)}</div>
@@ -488,16 +511,17 @@ function letterHTML(c){
         ${embed ? `<div class="song-embed"><iframe src="${embed}" height="152" allow="encrypted-media"></iframe></div>` : (c.spotify ? `<a href="${c.spotify}" target="_blank" style="color:#7A2E4A;">Escuchar en Spotify</a>` : '')}
       </div>` : ''}
       ${choicesBlock}
+      ${noteBlock}
     </div>
   `;
 }
 
-function spawnRoses(container){
+function spawnEmojis(container, emoji){
   container.innerHTML = '';
   for(let i=0;i<20;i++){
     const r = document.createElement('span');
     r.className = 'rose-emoji';
-    r.textContent = '🌹';
+    r.textContent = emoji;
     r.style.left = (Math.random()*94)+'%';
     r.style.animationDelay = (Math.random()*0.5)+'s';
     r.style.fontSize = (16+Math.random()*16)+'px';
@@ -507,17 +531,27 @@ function spawnRoses(container){
 
 function initChoices(root){
   const toggle = root.querySelector('.choices-toggle');
-  if(!toggle) return;
-  const panel = root.querySelector('.choices-panel');
-  const reveal = root.querySelector('.choice-reveal');
-  toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; });
-  root.querySelectorAll('.choice-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      panel.hidden = true;
-      reveal.hidden = false;
-      spawnRoses(reveal.querySelector('.roses-burst'));
+  if(toggle){
+    const panel = root.querySelector('.choices-panel');
+    const reveal = root.querySelector('.choice-reveal');
+    toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; });
+    root.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        panel.hidden = true;
+        reveal.hidden = false;
+        spawnEmojis(reveal.querySelector('.roses-burst'), '🌹');
+      });
     });
-  });
+  }
+  const noteToggle = root.querySelector('.note-toggle');
+  if(noteToggle){
+    const noteReveal = noteToggle.nextElementSibling;
+    noteToggle.addEventListener('click', () => {
+      noteReveal.hidden = false;
+      spawnEmojis(noteReveal.querySelector('.roses-burst'), '💕');
+      noteToggle.hidden = true;
+    });
+  }
 }
 
 let countdownTimer = null;
