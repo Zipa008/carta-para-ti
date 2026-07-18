@@ -285,6 +285,21 @@
     cursor:pointer;
   }
   .note-toggle[hidden]{ display:none; }
+  .quote-toggle{
+    width:100%;
+    background: linear-gradient(135deg, var(--magenta), var(--rose));
+    color:#fff; border:none; padding:.8rem 1rem; border-radius:8px;
+    font-family:'Poppins', sans-serif; font-size:.85rem; font-weight:500;
+    cursor:pointer; margin-bottom:.6rem;
+  }
+  .quote-toggle[hidden]{ display:none; }
+  .quote-reveal[hidden]{ display:none; }
+  .words-burst{ position:relative; height:56px; }
+  .word-span{
+    position:absolute; top:100%;
+    font-family:'Parisienne', cursive; font-size:1.35rem; color: var(--rose);
+    animation: roseFloat 2.4s ease-out forwards; white-space:nowrap;
+  }
   .choice-reveal{ position:relative; text-align:center; padding:2.2rem 0 1rem; overflow:hidden; }
   .choice-reveal[hidden]{ display:none; }
   .reveal-text{
@@ -414,6 +429,13 @@ const CARTAS = [
     text: "Nueve días para nuestro reencuentro, y cada vez siento más cerca tu olor, tu esencia, tus risas, tus enojos — todo lo siento cada vez más cerca. Extraño tu voz, tus manos, todo, mi amor hermosa. Eres mi vida entera y te amo con locura. La cartita de hoy es para decirte que he planeado muchas cositas para nuestras semanas luego de vernos: citas, momentos únicos que ya quiero empezar a vivir. No aguanto más sin estar al lado de la mujer que amo, te necesito, mi amor, muchísimo, y te extraño como no te imaginas. Eres el verso más bonito que la vida me regaló, y mi corazón entero te pertenece, hoy, mañana y siempre.",
     spotify: "https://open.spotify.com/track/3lVYnZYyVvi95n5XjE2YCV?si=02J7FRQ1RnuG0HVqR9wHAA&utm_source=copy-link",
     quote: "Me gusta sentir la calma que tú me das, y luego beso tras beso, alzar las copas otra vez, porque tu cuerpo y tu alma me piden más"
+  },
+  {
+    date: "2026-07-17",
+    text: "Mi amor, no sabes lo especial y amado que me haces sentir cada día de mi vida, lo afortunado que me siento de que pienses en mí, en mi cumpleaños, en todos los detalles que no son materiales. Sabes que me encanta sentirme especial, y más si es por parte del amor de mi vida. Estoy muy ansioso por ya saber mis regalitos, pero mucho más por compartir ese día y días de celebración a tu lado. No sabes la felicidad que tengo en este momento y cuánto deseo que ya llegue ese día.",
+    spotify: "https://open.spotify.com/intl-es/track/49QjsMw8972j5rfODZzWWq?si=db32641e1e194ae1",
+    quote: "Te dedico una nueva canción, mi amor hermosa, y quiero que sepas que te acompaño en cada paso de tu vida.",
+    quote_hidden: true
   }
 ];
 
@@ -513,7 +535,12 @@ function letterHTML(c){
       ${(c.spotify || c.quote) ? `
       <div class="song-block">
         <div class="song-label">Nuestra canción de hoy</div>
-        ${c.quote ? `<div class="song-quote">${escapeHtml(c.quote)}</div>` : ''}
+        ${c.quote ? (c.quote_hidden ? `
+          <button class="quote-toggle" type="button">Toca para ver la frase de hoy 💌</button>
+          <div class="quote-reveal" hidden>
+            <div class="words-burst"></div>
+            <div class="song-quote">${escapeHtml(c.quote)}</div>
+          </div>` : `<div class="song-quote">${escapeHtml(c.quote)}</div>`) : ''}
         ${embed ? `<div class="song-embed"><iframe src="${embed}" height="152" allow="encrypted-media"></iframe></div>` : (c.spotify ? `<a href="${c.spotify}" target="_blank" style="color:#7A2E4A;">Escuchar en Spotify</a>` : '')}
       </div>` : ''}
       ${choicesBlock}
@@ -533,6 +560,19 @@ function spawnEmojis(container, emoji){
     r.style.fontSize = (16+Math.random()*16)+'px';
     container.appendChild(r);
   }
+}
+
+function spawnWords(container, phrase){
+  container.innerHTML = '';
+  const words = phrase.split(' ');
+  words.forEach((w,i) => {
+    const s = document.createElement('span');
+    s.className = 'word-span';
+    s.textContent = w;
+    s.style.left = (6 + (i*80/words.length))+'%';
+    s.style.animationDelay = (i*0.15)+'s';
+    container.appendChild(s);
+  });
 }
 
 function initChoices(root){
@@ -556,6 +596,15 @@ function initChoices(root){
       noteReveal.hidden = false;
       spawnEmojis(noteReveal.querySelector('.roses-burst'), '💕');
       noteToggle.hidden = true;
+    });
+  }
+  const quoteToggle = root.querySelector('.quote-toggle');
+  if(quoteToggle){
+    const quoteReveal = quoteToggle.nextElementSibling;
+    quoteToggle.addEventListener('click', () => {
+      quoteReveal.hidden = false;
+      spawnWords(quoteReveal.querySelector('.words-burst'), 'Eres mi vida entera');
+      quoteToggle.hidden = true;
     });
   }
 }
