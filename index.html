@@ -317,6 +317,45 @@
     100%{ transform: translateY(-170px) rotate(340deg); opacity:0; }
   }
 
+  .special-gate{
+    position:relative; overflow:hidden;
+    background: var(--parchment); border-radius: 4px;
+    padding: 3.6rem 2rem; text-align:center; cursor:pointer;
+    box-shadow: 0 25px 60px rgba(0,0,0,.45);
+    margin-bottom: 2.4rem;
+  }
+  .special-icon{ font-size:2.4rem; margin-bottom:.8rem; }
+  .special-hint{
+    font-family:'Poppins', sans-serif; color:#7A2E4A; font-size:.9rem; letter-spacing:.03em;
+  }
+  .tulip-rain{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .tulip-mini{ position:absolute; top:-40px; width:22px; height:28px; }
+  @keyframes tulipFall{
+    0%{ transform: translateY(-40px) rotate(0deg); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform: translateY(240px) rotate(200deg); opacity:0; }
+  }
+  .tulip-mini.falling{ animation: tulipFall 2.2s ease-in forwards; }
+
+  .special-note{
+    background: var(--parchment); border-radius: 4px; padding: 3rem 2rem; text-align:center;
+    box-shadow: 0 25px 60px rgba(0,0,0,.45); margin-bottom: 2.4rem;
+  }
+  .special-note-text{
+    font-family:'Parisienne', cursive; font-size:1.9rem; color: var(--magenta);
+    line-height:1.5; margin-bottom:1.8rem;
+  }
+  .btn-continue{
+    font-family:'Poppins', sans-serif; font-size:.85rem; font-weight:500;
+    padding:.75rem 1.5rem; border-radius:6px; border:none; cursor:pointer;
+    background: var(--rose); color:#fff;
+  }
+
+  .letter-hint{
+    font-family:'Poppins', sans-serif; font-size:.78rem; font-style:italic;
+    color: var(--rose); margin-bottom:1rem;
+  }
+
   .modal-overlay{
     position:fixed; inset:0; background: rgba(15,8,17,.75);
     display:none; align-items:center; justify-content:center;
@@ -436,6 +475,15 @@ const CARTAS = [
     spotify: "https://open.spotify.com/intl-es/track/49QjsMw8972j5rfODZzWWq?si=db32641e1e194ae1",
     quote: "Te dedico una nueva canción, mi amor hermosa, y quiero que sepas que te acompaño en cada paso de tu vida.",
     quote_hidden: true
+  },
+  {
+    date: "2026-07-19",
+    badge: "Carta doble 💌",
+    hint: "Esta cartita está en italiano... ¿te animas a traducirla tú misma? 🇮🇹",
+    intro_note: "Te amo con mi vida, eres lo más hermoso de mi existencia, y vivo muy orgulloso de mi mujer. Eres mi vida, y eres muy fuerte. No me vuelvas a asustar así.",
+    text: "Ciao amore mio bellissima, so che questa è una letterina doppia, perché ieri ne è mancata una, ma voglio che ti illuda insieme a me perché mancano 6 giorni per rivederci, sono già molto emozionato, non vedo l'ora che tu torni e veda i regalini che ho preparato per noi due. Ti amo con tutta l'anima e manca davvero poco. Ti scrivo per farti sapere che penso a te giorno e notte, per farti sapere che ogni secondo che passa nella mia vita tu sei presente, non dimenticarlo mai, amore della mia vita. Voglio anche darti un indizio sul nostro primo appuntamento, quando saremo già a casa e avremo sbrigato le nostre faccende: faremo un mini viaggio di un giorno, dove vivremo nuove esperienze e ci connetteremo molto di più insieme, riposandoci un po', ma condividendo ogni momento, e sarà unico. Raccoglieremo tanti ricordi per poi trasformarli in qualcosa che ho preparato per noi due. Ti amoooo, so che starai pensando e vorrai che ti dia altri indizi, ma no, manca davvero poco e sarà bellissimo.",
+    spotify: "https://open.spotify.com/intl-es/track/6cPLCU7hKjgjvLWzCevl7R?si=d8e3cb38c61f4d03",
+    quote: "Non ricordo come, ma è entrato dentro di me ed è rimasto lì"
   }
 ];
 
@@ -529,7 +577,8 @@ function letterHTML(c){
       </div>` : '';
   return `
     <div class="letter">
-      <div class="date">${formatDate(c.date)}</div>
+      <div class="date">${formatDate(c.date)}${c.badge ? ` · ${escapeHtml(c.badge)}` : ''}</div>
+      ${c.hint ? `<div class="letter-hint">${escapeHtml(c.hint)}</div>` : ''}
       <div class="body-text">${escapeHtml(c.text)}</div>
       <div class="signoff">Te amo</div>
       ${(c.spotify || c.quote) ? `
@@ -610,6 +659,7 @@ function initChoices(root){
 }
 
 let countdownTimer = null;
+let specialOpened = false;
 
 function renderCounter(){
   const el = document.getElementById('counter-label');
@@ -624,11 +674,59 @@ function renderToday(){
     slot.innerHTML = `<div class="empty-state">Todavía no hay carta disponible.<br>Vuelve pronto 🌷</div>`;
   }else{
     const c = unlocked[unlocked.length - 1];
-    slot.innerHTML = letterHTML(c);
-    initChoices(slot);
+    if(c.intro_note && !specialOpened){
+      renderSpecialGate(slot, c);
+    }else{
+      slot.innerHTML = letterHTML(c);
+      initChoices(slot);
+    }
   }
   renderCounter();
   renderCountdown();
+}
+
+function renderSpecialGate(slot, c){
+  slot.innerHTML = `
+    <div class="special-gate" id="special-gate">
+      <div class="tulip-rain" id="tulip-rain"></div>
+      <div class="special-icon">🌷</div>
+      <div class="special-hint">Toca para abrir tu cartita especial de hoy</div>
+    </div>`;
+  const gate = document.getElementById('special-gate');
+  gate.addEventListener('click', function handler(){
+    gate.removeEventListener('click', handler);
+    spawnTulipRain(document.getElementById('tulip-rain'));
+    setTimeout(() => showSpecialNote(slot, c), 1700);
+  });
+}
+
+function spawnTulipRain(container){
+  const hueSet = ['#E85C6B','#F4A64B','#F08FA0','#C2456B','#F7D0A0'];
+  for(let i=0;i<24;i++){
+    const t = document.createElement('div');
+    t.className = 'tulip-mini falling';
+    t.style.left = (Math.random()*94)+'%';
+    t.style.animationDelay = (Math.random()*0.6)+'s';
+    const color = hueSet[i % hueSet.length];
+    t.innerHTML = `<svg viewBox="0 0 26 34" width="100%" height="100%">
+      <path d="M13 34 L13 16" stroke="#5B8C5A" stroke-width="2" fill="none"/>
+      <path d="M13 2 C4 2 3 12 13 20 C23 12 22 2 13 2 Z" fill="${color}"/>
+    </svg>`;
+    container.appendChild(t);
+  }
+}
+
+function showSpecialNote(slot, c){
+  slot.innerHTML = `
+    <div class="special-note">
+      <div class="special-note-text">${escapeHtml(c.intro_note)}</div>
+      <button class="btn-continue" id="continue-btn" type="button">Seguir leyendo →</button>
+    </div>`;
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    specialOpened = true;
+    slot.innerHTML = letterHTML(c);
+    initChoices(slot);
+  });
 }
 
 function renderCountdown(){
