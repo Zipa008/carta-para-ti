@@ -351,6 +351,10 @@
     background: var(--rose); color:#fff;
   }
 
+  .letter-title{
+    font-family:'Parisienne', cursive; font-size:1.7rem; color: var(--magenta);
+    margin-bottom:.8rem;
+  }
   .letter-hint{
     font-family:'Poppins', sans-serif; font-size:.78rem; font-style:italic;
     color: var(--rose); margin-bottom:1rem;
@@ -484,6 +488,13 @@ const CARTAS = [
     text: "Ciao amore mio bellissima, so che questa è una letterina doppia, perché ieri ne è mancata una, ma voglio che ti illuda insieme a me perché mancano 6 giorni per rivederci, sono già molto emozionato, non vedo l'ora che tu torni e veda i regalini che ho preparato per noi due. Ti amo con tutta l'anima e manca davvero poco. Ti scrivo per farti sapere che penso a te giorno e notte, per farti sapere che ogni secondo che passa nella mia vita tu sei presente, non dimenticarlo mai, amore della mia vita. Voglio anche darti un indizio sul nostro primo appuntamento, quando saremo già a casa e avremo sbrigato le nostre faccende: faremo un mini viaggio di un giorno, dove vivremo nuove esperienze e ci connetteremo molto di più insieme, riposandoci un po', ma condividendo ogni momento, e sarà unico. Raccoglieremo tanti ricordi per poi trasformarli in qualcosa che ho preparato per noi due. Ti amoooo, so che starai pensando e vorrai che ti dia altri indizi, ma no, manca davvero poco e sarà bellissimo.",
     spotify: "https://open.spotify.com/intl-es/track/6cPLCU7hKjgjvLWzCevl7R?si=d8e3cb38c61f4d03",
     quote: "Non ricordo come, ma è entrato dentro di me ed è rimasto lì"
+  },
+  {
+    date: "2026-07-20",
+    title: "Notita para el amor de mi vida",
+    text: "No olvides que yo siempre seré tu mejor amigo, mejor amiga, novio, esposo, todo, mi amor hermosa. Siempre estaré para ti, siempre cuidaré de ti, eres lo más hermoso de mi vida y quiero verte feliz cada día de mi vida.",
+    spotify: "https://open.spotify.com/intl-es/track/7HW5tUjaKxBUamSi7nnzPt?si=75e006c79d4941e7",
+    quote: "Por poder mirarme en tus ojos bonitos, y vivir la gloria de estar a tu lado, porque en mí ya siento que te necesito, que me he enamorado"
   }
 ];
 
@@ -578,6 +589,7 @@ function letterHTML(c){
   return `
     <div class="letter">
       <div class="date">${formatDate(c.date)}${c.badge ? ` · ${escapeHtml(c.badge)}` : ''}</div>
+      ${c.title ? `<div class="letter-title">${escapeHtml(c.title)}</div>` : ''}
       ${c.hint ? `<div class="letter-hint">${escapeHtml(c.hint)}</div>` : ''}
       <div class="body-text">${escapeHtml(c.text)}</div>
       <div class="signoff">Te amo</div>
