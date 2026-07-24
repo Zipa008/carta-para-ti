@@ -351,6 +351,54 @@
     background: var(--rose); color:#fff;
   }
 
+  .lock-gate{
+    background: var(--parchment); border-radius: 4px; padding: 2.6rem 1.6rem 2.2rem;
+    text-align:center; box-shadow: 0 25px 60px rgba(0,0,0,.45); margin-bottom: 2.4rem;
+    position:relative; overflow:hidden;
+  }
+  .lock-badge{
+    font-family:'Poppins', sans-serif; font-size:.7rem; letter-spacing:.14em;
+    text-transform:uppercase; color: var(--gold); margin-bottom:.6rem;
+  }
+  .lock-hint{
+    font-family:'Poppins', sans-serif; font-size:.85rem; color:#7A2E4A; font-style:italic;
+    margin-bottom:1.3rem;
+  }
+  .heart-lock{ width:150px; height:auto; margin:0 auto 1.4rem; display:block; transition: transform .8s ease, opacity .8s ease; }
+  .heart-lock #shackle-path{ transition: transform .8s ease; transform-origin: 120px 90px; }
+  .lock-gate.unlocking .heart-lock #shackle-path{ transform: translateY(-26px) rotate(-18deg); }
+  .lock-gate.unlocking .heart-lock{ transform: scale(1.08); filter: drop-shadow(0 0 22px rgba(244,166,75,.85)); }
+  .lock-gate.unlocked .heart-lock{ opacity:0; transform: scale(1.3); }
+  .lock-gate.unlocked .code-entry{ opacity:0; }
+  .code-entry{ display:flex; justify-content:center; gap:.6rem; margin-bottom:1rem; transition: opacity .5s ease; }
+  .digit-col{ display:flex; flex-direction:column; align-items:center; gap:.3rem; }
+  .digit-col button{
+    width:34px; height:26px; border-radius:6px; border:1px solid rgba(122,46,74,.3);
+    background:#fff; color:var(--magenta); font-size:.7rem; cursor:pointer;
+  }
+  .digit-col button:hover{ background: rgba(232,92,107,.1); }
+  .dg-val{
+    width:40px; height:44px; display:flex; align-items:center; justify-content:center;
+    font-family:'Poppins', sans-serif; font-size:1.4rem; font-weight:600;
+    background:#fff; border:1px solid rgba(122,46,74,.25); border-radius:6px; color:#3A2A28;
+  }
+
+  .constellation-wrap{
+    background: var(--aubergine-deep); border-radius:10px; padding:1.8rem 1rem;
+    margin-bottom:2.4rem; text-align:center;
+  }
+  .constellation-canvas-box{ position:relative; width:100%; max-width:480px; margin:0 auto; }
+  .const-star{ fill:#F4A64B; opacity:0; animation: starIn .5s ease forwards; }
+  .const-line{ stroke:#F7D0A0; stroke-width:.6; opacity:0; animation: lineIn .5s ease forwards; }
+  @keyframes starIn{ to{ opacity:1; } }
+  @keyframes lineIn{ to{ opacity:.45; } }
+
+  .final-message-card{
+    background: var(--parchment); border-radius: 4px; padding: 2.8rem 2rem; text-align:center;
+    box-shadow: 0 25px 60px rgba(0,0,0,.45); margin-bottom: 2.4rem;
+  }
+  .final-message-text{ font-family:'Parisienne', cursive; font-size:2.1rem; color: var(--magenta); }
+
   .letter-title{
     font-family:'Parisienne', cursive; font-size:1.7rem; color: var(--magenta);
     margin-bottom:.8rem;
@@ -495,6 +543,14 @@ const CARTAS = [
     text: "No olvides que yo siempre seré tu mejor amigo, mejor amiga, novio, esposo, todo, mi amor hermosa. Siempre estaré para ti, siempre cuidaré de ti, eres lo más hermoso de mi vida y quiero verte feliz cada día de mi vida.",
     spotify: "https://open.spotify.com/intl-es/track/7HW5tUjaKxBUamSi7nnzPt?si=75e006c79d4941e7",
     quote: "Por poder mirarme en tus ojos bonitos, y vivir la gloria de estar a tu lado, porque en mí ya siento que te necesito, que me he enamorado"
+  },
+  {
+    date: "2026-07-23",
+    badge: "Carta doble 💌",
+    lock_code: "0108",
+    lock_hint: "El día en que fui el hombre más feliz del mundo",
+    constellation_text: "Eres el amor de mi vida",
+    final_message: "Tan solo dos días para vernos 💕"
   }
 ];
 
@@ -686,7 +742,9 @@ function renderToday(){
     slot.innerHTML = `<div class="empty-state">Todavía no hay carta disponible.<br>Vuelve pronto 🌷</div>`;
   }else{
     const c = unlocked[unlocked.length - 1];
-    if(c.intro_note && !specialOpened){
+    if(c.lock_code){
+      renderLockGate(slot, c);
+    }else if(c.intro_note && !specialOpened){
       renderSpecialGate(slot, c);
     }else{
       slot.innerHTML = letterHTML(c);
@@ -695,6 +753,121 @@ function renderToday(){
   }
   renderCounter();
   renderCountdown();
+}
+
+function renderLockGate(slot, c){
+  slot.innerHTML = `
+    <div class="lock-gate" id="lock-gate">
+      ${c.badge ? `<div class="lock-badge">${escapeHtml(c.badge)}</div>` : ''}
+      <div class="lock-hint">${escapeHtml(c.lock_hint)}</div>
+      <svg class="heart-lock" viewBox="0 0 240 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="heartGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#F7D0A0"/>
+            <stop offset="100%" stop-color="#E85C6B"/>
+          </linearGradient>
+          <linearGradient id="shackleGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#F4A64B"/>
+            <stop offset="100%" stop-color="#E85C6B"/>
+          </linearGradient>
+        </defs>
+        <path id="shackle-path" d="M70 110 V70 A50 50 0 0 1 170 70 V110" fill="none" stroke="url(#shackleGrad)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M120 250 C20 180 20 100 70 80 C100 68 120 90 120 112 C120 90 140 68 170 80 C220 100 220 180 120 250 Z" fill="url(#heartGrad)" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>
+      </svg>
+      <div class="code-entry" id="code-entry"></div>
+    </div>`;
+
+  const digits = [0,0,0,0];
+  const entry = document.getElementById('code-entry');
+  for(let i=0;i<4;i++){
+    const col = document.createElement('div');
+    col.className = 'digit-col';
+    col.innerHTML = `<button class="dg-up" type="button" aria-label="Subir">▲</button><div class="dg-val">0</div><button class="dg-down" type="button" aria-label="Bajar">▼</button>`;
+    entry.appendChild(col);
+    const valEl = col.querySelector('.dg-val');
+    col.querySelector('.dg-up').addEventListener('click', () => {
+      digits[i] = (digits[i]+1)%10; valEl.textContent = digits[i]; checkCode();
+    });
+    col.querySelector('.dg-down').addEventListener('click', () => {
+      digits[i] = (digits[i]+9)%10; valEl.textContent = digits[i]; checkCode();
+    });
+  }
+
+  function checkCode(){
+    if(digits.join('') === c.lock_code){
+      unlockSequence(slot, c);
+    }
+  }
+}
+
+function unlockSequence(slot, c){
+  const gate = document.getElementById('lock-gate');
+  gate.classList.add('unlocking');
+  setTimeout(() => {
+    gate.classList.add('unlocked');
+    setTimeout(() => { showConstellation(slot, c); }, 700);
+  }, 750);
+}
+
+function showConstellation(slot, c){
+  slot.innerHTML = `<div class="constellation-wrap"><div class="constellation-canvas-box" id="const-box"></div></div>`;
+  buildConstellation(c.constellation_text, document.getElementById('const-box'));
+  setTimeout(() => showFinalMessage(slot, c), 2700);
+}
+
+function showFinalMessage(slot, c){
+  slot.innerHTML = `<div class="final-message-card"><div class="final-message-text">${escapeHtml(c.final_message)}</div></div>`;
+}
+
+function buildConstellation(phrase, containerEl){
+  const W = 520, H = 110;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(phrase, W/2, H/2);
+  const data = ctx.getImageData(0,0,W,H).data;
+  const points = [];
+  const step = 6;
+  for(let y=0;y<H;y+=step){
+    for(let x=0;x<W;x+=step){
+      const idx = (y*W+x)*4;
+      if(data[idx+3] > 128){ points.push({x,y}); }
+    }
+  }
+  points.sort((a,b)=> a.x - b.x || a.y - b.y);
+
+  containerEl.style.aspectRatio = `${W} / ${H}`;
+  containerEl.innerHTML = '';
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.width = '100%'; svg.style.height = '100%'; svg.style.display = 'block';
+  containerEl.appendChild(svg);
+
+  points.forEach((p,i) => {
+    if(i>0){
+      const prev = points[i-1];
+      const dist = Math.hypot(p.x-prev.x, p.y-prev.y);
+      if(dist < 34){
+        const line = document.createElementNS(svgNS,'line');
+        line.setAttribute('x1',prev.x); line.setAttribute('y1',prev.y);
+        line.setAttribute('x2',p.x); line.setAttribute('y2',p.y);
+        line.setAttribute('class','const-line');
+        line.style.animationDelay = (i*0.01)+'s';
+        svg.appendChild(line);
+      }
+    }
+    const circle = document.createElementNS(svgNS,'circle');
+    circle.setAttribute('cx',p.x); circle.setAttribute('cy',p.y);
+    circle.setAttribute('r','1.7');
+    circle.setAttribute('class','const-star');
+    circle.style.animationDelay = (i*0.01)+'s';
+    svg.appendChild(circle);
+  });
 }
 
 function renderSpecialGate(slot, c){
@@ -776,7 +949,7 @@ function renderArchive(){
   list.innerHTML = prior.map((c) => `
     <div class="archive-item" tabindex="0" data-date="${c.date}">
       <span class="d">${formatDate(c.date)}</span>
-      <span class="t">${c.quote ? escapeHtml(c.quote).slice(0,40) : escapeHtml(c.text).slice(0,40)}…</span>
+      <span class="t">${(c.quote ? escapeHtml(c.quote) : (c.text ? escapeHtml(c.text) : escapeHtml(c.final_message || ''))).slice(0,40)}…</span>
     </div>`).join('');
 
   list.querySelectorAll('.archive-item').forEach(el => {
@@ -791,9 +964,14 @@ function renderArchive(){
 function showLetterModal(c){
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
-  content.innerHTML = `
-    ${letterHTML(c)}
-    <button class="btn btn-ghost" id="close-view">Cerrar</button>`;
+  const inner = c.lock_code
+    ? `<div class="final-message-card">
+         ${c.badge ? `<div class="lock-badge">${escapeHtml(c.badge)}</div>` : ''}
+         <div class="final-message-text">${escapeHtml(c.constellation_text)}</div>
+         <div class="letter-hint" style="margin-top:.9rem;">${escapeHtml(c.final_message)}</div>
+       </div>`
+    : letterHTML(c);
+  content.innerHTML = `${inner}<button class="btn btn-ghost" id="close-view">Cerrar</button>`;
   initChoices(content);
   overlay.classList.add('open');
   document.getElementById('close-view').addEventListener('click', () => overlay.classList.remove('open'));
