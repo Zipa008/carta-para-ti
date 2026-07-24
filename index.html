@@ -388,6 +388,11 @@
     margin-bottom:2.4rem; text-align:center;
   }
   .constellation-canvas-box{ position:relative; width:100%; max-width:480px; margin:0 auto; }
+  .const-caption{
+    font-family:'Parisienne', cursive; font-size:1.4rem; color: var(--gold);
+    text-align:center; margin-top: 1rem; opacity:0; transition: opacity 1s ease;
+  }
+  .const-caption.show{ opacity:1; }
   .const-star{ fill:#F4A64B; opacity:0; animation: starIn .5s ease forwards; }
   .const-line{ stroke:#F7D0A0; stroke-width:.6; opacity:0; animation: lineIn .5s ease forwards; }
   @keyframes starIn{ to{ opacity:1; } }
@@ -549,7 +554,7 @@ const CARTAS = [
     badge: "Carta doble 💌",
     lock_code: "0108",
     lock_hint: "El día en que fui el hombre más feliz del mundo",
-    constellation_text: "Eres el amor de mi vida",
+    constellation_lines: ["Eres el amor", "de mi vida"],
     final_message: "Tan solo dos días para vernos 💕"
   }
 ];
@@ -810,41 +815,52 @@ function unlockSequence(slot, c){
 }
 
 function showConstellation(slot, c){
-  slot.innerHTML = `<div class="constellation-wrap"><div class="constellation-canvas-box" id="const-box"></div></div>`;
-  buildConstellation(c.constellation_text, document.getElementById('const-box'));
-  setTimeout(() => showFinalMessage(slot, c), 2700);
+  slot.innerHTML = `<div class="constellation-wrap"><div class="constellation-canvas-box" id="const-box"></div><div class="const-caption" id="const-caption"></div></div>`;
+  const totalMs = buildConstellation(c.constellation_lines || [c.constellation_text], document.getElementById('const-box'));
+  setTimeout(() => {
+    const cap = document.getElementById('const-caption');
+    cap.textContent = (c.constellation_lines || [c.constellation_text]).join(' ');
+    cap.classList.add('show');
+  }, totalMs + 300);
+  setTimeout(() => showFinalMessage(slot, c), totalMs + 2200);
 }
 
 function showFinalMessage(slot, c){
   slot.innerHTML = `<div class="final-message-card"><div class="final-message-text">${escapeHtml(c.final_message)}</div></div>`;
 }
 
-function buildConstellation(phrase, containerEl){
-  const W = 520, H = 110;
+function buildConstellation(lines, containerEl){
+  const scale = 2; // higher internal resolution for crisper sampling
+  const W = 440 * scale, H = 66 * lines.length * scale;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 30px sans-serif';
+  ctx.font = `bold ${30*scale}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(phrase, W/2, H/2);
+  const lineH = H / lines.length;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W/2, lineH*i + lineH/2);
+  });
+
   const data = ctx.getImageData(0,0,W,H).data;
   const points = [];
-  const step = 6;
+  const step = 4 * scale;
   for(let y=0;y<H;y+=step){
     for(let x=0;x<W;x+=step){
       const idx = (y*W+x)*4;
-      if(data[idx+3] > 128){ points.push({x,y}); }
+      if(data[idx+3] > 160){ points.push({x: x/scale, y: y/scale}); }
     }
   }
   points.sort((a,b)=> a.x - b.x || a.y - b.y);
 
-  containerEl.style.aspectRatio = `${W} / ${H}`;
+  const Wd = W/scale, Hd = H/scale;
+  containerEl.style.aspectRatio = `${Wd} / ${Hd}`;
   containerEl.innerHTML = '';
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('viewBox', `0 0 ${Wd} ${Hd}`);
   svg.style.width = '100%'; svg.style.height = '100%'; svg.style.display = 'block';
   containerEl.appendChild(svg);
 
@@ -852,22 +868,24 @@ function buildConstellation(phrase, containerEl){
     if(i>0){
       const prev = points[i-1];
       const dist = Math.hypot(p.x-prev.x, p.y-prev.y);
-      if(dist < 34){
+      if(dist < 9){
         const line = document.createElementNS(svgNS,'line');
         line.setAttribute('x1',prev.x); line.setAttribute('y1',prev.y);
         line.setAttribute('x2',p.x); line.setAttribute('y2',p.y);
         line.setAttribute('class','const-line');
-        line.style.animationDelay = (i*0.01)+'s';
+        line.style.animationDelay = (i*0.008)+'s';
         svg.appendChild(line);
       }
     }
     const circle = document.createElementNS(svgNS,'circle');
     circle.setAttribute('cx',p.x); circle.setAttribute('cy',p.y);
-    circle.setAttribute('r','1.7');
+    circle.setAttribute('r','1.8');
     circle.setAttribute('class','const-star');
-    circle.style.animationDelay = (i*0.01)+'s';
+    circle.style.animationDelay = (i*0.008)+'s';
     svg.appendChild(circle);
   });
+
+  return points.length * 8 + 500;
 }
 
 function renderSpecialGate(slot, c){
@@ -967,7 +985,7 @@ function showLetterModal(c){
   const inner = c.lock_code
     ? `<div class="final-message-card">
          ${c.badge ? `<div class="lock-badge">${escapeHtml(c.badge)}</div>` : ''}
-         <div class="final-message-text">${escapeHtml(c.constellation_text)}</div>
+         <div class="final-message-text">${escapeHtml((c.constellation_lines || [c.constellation_text || '']).join(' '))}</div>
          <div class="letter-hint" style="margin-top:.9rem;">${escapeHtml(c.final_message)}</div>
        </div>`
     : letterHTML(c);
